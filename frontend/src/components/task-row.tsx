@@ -13,7 +13,7 @@ type TaskRowProps = {
  */
 export function TaskRow({ task, onStatusChange, disabled }: TaskRowProps) {
   return (
-    <li className="flex flex-wrap items-center justify-between gap-3 py-3">
+    <li className="flex min-w-0 flex-wrap items-center justify-between gap-3 py-3">
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium">{task.title}</p>
         <p className="truncate text-sm text-muted-foreground">

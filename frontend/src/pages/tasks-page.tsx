@@ -121,7 +121,7 @@ export function TasksPage() {
             </CardDescription>
           </CardHeader>
 
-          <CardContent className="grid gap-6">
+          <CardContent className="grid min-w-0 gap-6">
             {loadError ? (
               <Alert variant="destructive">
                 <AlertCircleIcon />
@@ -139,7 +139,7 @@ export function TasksPage() {
                 )}
 
                 {tasks && tasks.length > 0 ? (
-                  <ul className="divide-y">
+                  <ul className="min-w-0 divide-y">
                     {tasks.map((task) => (
                       <TaskRow
                         key={task.id}
