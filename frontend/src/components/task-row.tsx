@@ -1,3 +1,4 @@
+import { Link } from 'react-router'
 import { TaskStatusControl } from '@/components/task-status-control'
 import type { Task, TaskStatus } from '@/lib/types'
 
@@ -15,7 +16,12 @@ export function TaskRow({ task, onStatusChange, disabled }: TaskRowProps) {
   return (
     <li className="flex min-w-0 flex-wrap items-center justify-between gap-3 py-3">
       <div className="min-w-0 flex-1">
-        <p className="truncate font-medium">{task.title}</p>
+        <Link
+          to={`/tasks/${task.id}`}
+          className="block truncate font-medium hover:underline"
+        >
+          {task.title}
+        </Link>
         <p className="truncate text-sm text-muted-foreground">
           {task.assignee.fullName ?? 'Sin nombre'}
         </p>

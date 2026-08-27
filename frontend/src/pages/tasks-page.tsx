@@ -82,7 +82,7 @@ export function TasksPage() {
       setPendingIds((current) => [...current, task.id])
 
       try {
-        replace(await api.updateTaskStatus(token, task.id, { status }))
+        replace(await api.updateTask(token, task.id, { status }))
       } catch (error: unknown) {
         replace({ ...task, status: previousStatus })
         setStatusError(

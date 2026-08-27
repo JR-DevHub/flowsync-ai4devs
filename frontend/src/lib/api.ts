@@ -4,7 +4,7 @@ import type {
   LoginPayload,
   SignupPayload,
   Task,
-  UpdateTaskStatusPayload,
+  UpdateTaskPayload,
   User,
 } from '@/lib/types'
 
@@ -45,6 +45,8 @@ const FIELD_LABELS: Record<string, string> = {
   passwordConfirmation: 'la confirmación de la contraseña',
   title: 'el título',
   status: 'el estado',
+  dueDate: 'la fecha de vencimiento',
+  today: 'el día de hoy',
 }
 
 const label = (field?: string) => FIELD_LABELS[field ?? ''] ?? 'el campo'
@@ -67,6 +69,12 @@ function translate(error: BackendError): string {
       return field === 'status'
         ? 'Ese estado no existe.'
         : `El valor de ${label(field)} no es válido.`
+    case 'date':
+      return field === 'dueDate'
+        ? 'Esa fecha no existe. Escríbela como día, mes y año.'
+        : `${label(field)} no es una fecha válida.`
+    case 'atLeastOne':
+      return 'No has cambiado nada.'
     case 'email':
       return 'Introduce una dirección de email válida.'
     case 'required':
@@ -113,6 +121,19 @@ function toApiError(status: number, body: unknown): ApiError {
     'Algo ha ido mal en el servidor. Inténtalo de nuevo en un momento.',
     status,
   )
+}
+
+/**
+ * El día de calendario de quien mira, que el servidor necesita para decidir si
+ * una tarea está vencida. Se calcula aquí, en el único punto de contacto con la
+ * API, para que ninguna pantalla tenga que acordarse de mandarlo.
+ */
+function browserToday(): string {
+  const now = new Date()
+  const mes = String(now.getMonth() + 1).padStart(2, '0')
+  const dia = String(now.getDate()).padStart(2, '0')
+
+  return `${now.getFullYear()}-${mes}-${dia}`
 }
 
 type RequestOptions = {
@@ -179,29 +200,39 @@ export function logout(token: string): Promise<void> {
   )
 }
 
+/** Sufijo con el día del navegador, que acompaña a toda petición de tareas. */
+const withToday = (path: string) =>
+  `${path}${path.includes('?') ? '&' : '?'}today=${browserToday()}`
+
 export function getTasks(token: string): Promise<Task[]> {
-  return request<{ data: Task[] }>('/api/v1/tasks', { token }).then(
+  return request<{ data: Task[] }>(withToday('/api/v1/tasks'), { token }).then(
     (response) => response.data,
   )
+}
+
+export function getTask(token: string, id: number): Promise<Task> {
+  return request<{ data: Task }>(withToday(`/api/v1/tasks/${id}`), {
+    token,
+  }).then((response) => response.data)
 }
 
 export function createTask(
   token: string,
   payload: CreateTaskPayload,
 ): Promise<Task> {
-  return request<{ data: Task }>('/api/v1/tasks', {
+  return request<{ data: Task }>(withToday('/api/v1/tasks'), {
     method: 'POST',
     body: payload,
     token,
   }).then((response) => response.data)
 }
 
-export function updateTaskStatus(
+export function updateTask(
   token: string,
   id: number,
-  payload: UpdateTaskStatusPayload,
+  payload: UpdateTaskPayload,
 ): Promise<Task> {
-  return request<{ data: Task }>(`/api/v1/tasks/${id}`, {
+  return request<{ data: Task }>(withToday(`/api/v1/tasks/${id}`), {
     method: 'PATCH',
     body: payload,
     token,
