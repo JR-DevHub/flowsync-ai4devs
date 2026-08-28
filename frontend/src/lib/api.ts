@@ -1,4 +1,12 @@
-import type { AuthResult, LoginPayload, SignupPayload, User } from '@/lib/types'
+import type {
+  AuthResult,
+  CreateTaskPayload,
+  LoginPayload,
+  SignupPayload,
+  Task,
+  UpdateTaskPayload,
+  User,
+} from '@/lib/types'
 
 const API_URL = import.meta.env.VITE_API_URL ?? 'http://localhost:3333'
 
@@ -35,6 +43,10 @@ const FIELD_LABELS: Record<string, string> = {
   email: 'el email',
   password: 'la contraseña',
   passwordConfirmation: 'la confirmación de la contraseña',
+  title: 'el título',
+  status: 'el estado',
+  dueDate: 'la fecha de vencimiento',
+  today: 'el día de hoy',
 }
 
 const label = (field?: string) => FIELD_LABELS[field ?? ''] ?? 'el campo'
@@ -53,6 +65,16 @@ function translate(error: BackendError): string {
         : `Ya existe un registro con ${label(field)}.`
     case 'sameAs':
       return 'Las contraseñas no coinciden.'
+    case 'enum':
+      return field === 'status'
+        ? 'Ese estado no existe.'
+        : `El valor de ${label(field)} no es válido.`
+    case 'date':
+      return field === 'dueDate'
+        ? 'Esa fecha no existe. Escríbela como día, mes y año.'
+        : `${label(field)} no es una fecha válida.`
+    case 'atLeastOne':
+      return 'No has cambiado nada.'
     case 'email':
       return 'Introduce una dirección de email válida.'
     case 'required':
@@ -101,8 +123,21 @@ function toApiError(status: number, body: unknown): ApiError {
   )
 }
 
+/**
+ * El día de calendario de quien mira, que el servidor necesita para decidir si
+ * una tarea está vencida. Se calcula aquí, en el único punto de contacto con la
+ * API, para que ninguna pantalla tenga que acordarse de mandarlo.
+ */
+function browserToday(): string {
+  const now = new Date()
+  const mes = String(now.getMonth() + 1).padStart(2, '0')
+  const dia = String(now.getDate()).padStart(2, '0')
+
+  return `${now.getFullYear()}-${mes}-${dia}`
+}
+
 type RequestOptions = {
-  method?: 'GET' | 'POST'
+  method?: 'GET' | 'POST' | 'PATCH'
   body?: unknown
   token?: string | null
 }
@@ -163,4 +198,43 @@ export function logout(token: string): Promise<void> {
   return request('/api/v1/account/logout', { method: 'POST', token }).then(
     () => undefined,
   )
+}
+
+/** Sufijo con el día del navegador, que acompaña a toda petición de tareas. */
+const withToday = (path: string) =>
+  `${path}${path.includes('?') ? '&' : '?'}today=${browserToday()}`
+
+export function getTasks(token: string): Promise<Task[]> {
+  return request<{ data: Task[] }>(withToday('/api/v1/tasks'), { token }).then(
+    (response) => response.data,
+  )
+}
+
+export function getTask(token: string, id: number): Promise<Task> {
+  return request<{ data: Task }>(withToday(`/api/v1/tasks/${id}`), {
+    token,
+  }).then((response) => response.data)
+}
+
+export function createTask(
+  token: string,
+  payload: CreateTaskPayload,
+): Promise<Task> {
+  return request<{ data: Task }>(withToday('/api/v1/tasks'), {
+    method: 'POST',
+    body: payload,
+    token,
+  }).then((response) => response.data)
+}
+
+export function updateTask(
+  token: string,
+  id: number,
+  payload: UpdateTaskPayload,
+): Promise<Task> {
+  return request<{ data: Task }>(withToday(`/api/v1/tasks/${id}`), {
+    method: 'PATCH',
+    body: payload,
+    token,
+  }).then((response) => response.data)
 }
