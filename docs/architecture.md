@@ -26,7 +26,7 @@ flowchart TB
 
   subgraph server["Contenedor: API FlowSync — AdonisJS 7 + TypeScript 6 — puerto 3333"]
     direction TB
-    router["Rutas y middlewares<br/>start/routes.ts con prefijo /api/v1<br/>start/kernel.ts: force_json_response, cors,<br/>bodyparser, session, shield, silent_auth<br/>y el middleware auth sobre account/ y tasks/"]
+    router["Rutas y middlewares<br/>start/routes.ts con prefijo /api/v1<br/>start/kernel.ts, servidor: force_json_response,<br/>container_bindings, cors<br/>start/kernel.ts, router: bodyparser, session, shield,<br/>initialize_auth, silent_auth<br/>y el middleware auth sobre account/ y tasks/"]
 
     subgraph ctrls["Controladores — app/controllers/"]
       direction LR

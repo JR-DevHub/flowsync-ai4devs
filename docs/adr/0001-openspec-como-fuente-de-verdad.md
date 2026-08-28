@@ -40,7 +40,7 @@ En concreto:
 
 ## Estado
 
-**Reemplazada** (2027-08-28) por el [ADR 0002 — Los tests de integración son la única fuente de verdad ejecutable](0002-tests-como-fuente-de-verdad-ejecutable.md). Lo que motivó el ADR 0002 fue precisamente el riesgo que este anotaba en sus consecuencias: que nada obliga a que la spec y el código coincidan. `openspec/specs/` queda congelada como registro histórico y deja de mantenerse.
+**Reemplazada** (2027-08-28) por el [ADR 0002 — Los tests de integración son la única fuente de verdad ejecutable](0002-tests-como-fuente-de-verdad-ejecutable.md), que es un **documento hipotético**: registra una decisión que no se ha tomado, así que esta sustitución tampoco ha ocurrido todavía y esta ADR sigue siendo la que rige. Lo que motivó el ADR 0002 fue precisamente el riesgo que este anotaba en sus consecuencias: que nada obliga a que la spec y el código coincidan. `openspec/specs/` queda congelada como registro histórico y deja de mantenerse.
 
 ~~**Aceptada** (2026-08-28).~~ Registró por escrito una práctica que estuvo en vigor desde `5b5cd0a` (2026-08-13) y que hasta entonces era tácita: `openspec/` se venía usando sin que ningún documento dijera qué autoridad tiene frente al PRD y al backlog.
 

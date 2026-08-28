@@ -60,16 +60,16 @@ La columna de la izquierda enlaza al requisito en la spec, que es donde está es
 | [Una sola lista compartida del espacio](../../../openspec/specs/tasks/spec.md#requirement-una-sola-lista-compartida-del-espacio) | `tasks_controller.ts` → `index` | `tasks/status_filter.spec.ts` (parcial) |
 | [Lo que cada tarea muestra de su responsable](../../../openspec/specs/tasks/spec.md#requirement-lo-que-cada-tarea-muestra-de-su-responsable) | `TaskAssigneeTransformer` | `tasks/assignee.spec.ts` (los 3 scenarios) |
 | [Tres estados fijos](../../../openspec/specs/tasks/spec.md#requirement-tres-estados-fijos) | `TASK_STATUSES` en `models/task.ts` | `unit/openapi/schemas.spec.ts` (que no se desvíen) |
-| [Cambio de estado de cualquier tarea](../../../openspec/specs/tasks/spec.md#requirement-cambio-de-estado-de-cualquier-tarea) | `task_statuses_controller.ts` | `tasks/status_filter.spec.ts` (parcial) |
+| [Cambio de estado de cualquier tarea](../../../openspec/specs/tasks/spec.md#requirement-cambio-de-estado-de-cualquier-tarea) | `task_statuses_controller.ts` | `tasks/status_filter.spec.ts` (parcial) · `tasks/not_found.spec.ts` (el 404) |
 | [Las tareas exigen sesión](../../../openspec/specs/tasks/spec.md#requirement-las-tareas-exigen-sesión) | `middleware.auth()` sobre el grupo, en `routes.ts` | — |
 | [Acotar la lista por estado](../../../openspec/specs/tasks/spec.md#requirement-acotar-la-lista-por-estado) | `listTasksValidator` + `index` | `tasks/status_filter.spec.ts` |
 | [Un filtro válido sin resultados es una lista vacía legítima](../../../openspec/specs/tasks/spec.md#requirement-un-filtro-válido-sin-resultados-es-una-lista-vacía-legítima) | `index` (rama con `status`) | `tasks/status_filter.spec.ts` |
 | [Un estado que no existe se rechaza, no se responde vacío](../../../openspec/specs/tasks/spec.md#requirement-un-estado-que-no-existe-se-rechaza-no-se-responde-vacío) | `listTasksValidator` (`vine.enum`, no `vine.string`) | `tasks/status_filter.spec.ts` |
 | [Fecha de vencimiento opcional](../../../openspec/specs/tasks/spec.md#requirement-fecha-de-vencimiento-opcional) | Columna nulable + `TaskDetailTransformer` | — |
-| [Fijar, cambiar y retirar la fecha de vencimiento](../../../openspec/specs/tasks/spec.md#requirement-fijar-cambiar-y-retirar-la-fecha-de-vencimiento) | `task_due_dates_controller.ts` | — |
+| [Fijar, cambiar y retirar la fecha de vencimiento](../../../openspec/specs/tasks/spec.md#requirement-fijar-cambiar-y-retirar-la-fecha-de-vencimiento) | `task_due_dates_controller.ts` | `tasks/not_found.spec.ts` (el 404) |
 | [Cuándo una tarea está vencida](../../../openspec/specs/tasks/spec.md#requirement-cuándo-una-tarea-está-vencida) | `Task.isOverdueOn()` — **la única definición del sistema** | — |
 | [El día de referencia lo pone quien mira](../../../openspec/specs/tasks/spec.md#requirement-el-día-de-referencia-lo-pone-quien-mira) | `taskReferenceDayValidator` y `setTaskDueDateValidator` (sin valor por defecto) | — |
-| [Consulta de una tarea suelta](../../../openspec/specs/tasks/spec.md#requirement-consulta-de-una-tarea-suelta) | `tasks_controller.ts` → `show` | `tasks/assignee.spec.ts` (parcial) |
+| [Consulta de una tarea suelta](../../../openspec/specs/tasks/spec.md#requirement-consulta-de-una-tarea-suelta) | `tasks_controller.ts` → `show` | `tasks/assignee.spec.ts` (parcial) · `tasks/not_found.spec.ts` (el 404) |
 | [La lista no lleva el vencimiento](../../../openspec/specs/tasks/spec.md#requirement-la-lista-no-lleva-el-vencimiento) | Que `TaskTransformer` y `TaskDetailTransformer` sean dos clases distintas | — |
 
 ### La interfaz
@@ -114,7 +114,7 @@ node ace test functional --files=status_filter  # un fichero
 node ace test --tests="un estado inventado se rechaza con 422 sobre el campo"
 ```
 
-Hoy cubren `auth` entera y, de `tasks`, el responsable, el filtro por estado y la coherencia del enum documentado. El resto de la capability se verifica a mano.
+Hoy cubren `auth` entera y, de `tasks`, el responsable, el filtro por estado, los tres `404` y la coherencia del enum documentado. El resto de la capability se verifica a mano.
 
 > **Cuidado con la base de datos.** `config/database.ts` declara una sola conexión SQLite, sin override por entorno, así que la suite `functional` escribe en **el mismo fichero** que el servidor de desarrollo (`backend/tmp/db.sqlite3`). Los tests se aíslan con `testUtils.db().withGlobalTransaction()`, pero las filas que ya existan siguen siendo visibles: no escribas tests que afirmen cuántas tareas hay en el espacio.
 

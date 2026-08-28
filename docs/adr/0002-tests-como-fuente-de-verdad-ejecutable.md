@@ -1,5 +1,7 @@
 # 2. Los tests de integración son la única fuente de verdad ejecutable
 
+> **Documento hipotético.** Se escribió el 2026-08-28 como ejercicio y registra una decisión que **no** se ha tomado, fechada a un año vista. Lo que cita del repositorio —el episodio de `2ccf2c1`, los 169 scenarios, las suites de `adonisrc.ts`, la falta de runner en `frontend/`— es real y estaba verificado el día en que se escribió; el año transcurrido entre ambas fechas es supuesto. El historial de git manda sobre las fechas de este documento.
+
 ## Contexto
 
 El [ADR 0001](0001-openspec-como-fuente-de-verdad.md) hizo de `openspec/specs/` la fuente de verdad viva del producto, y en sus consecuencias anotó el riesgo que ha acabado decidiendo este cambio:
