@@ -2,7 +2,16 @@ import Task from '#models/task'
 import { updateTaskStatusValidator } from '#validators/task'
 import type { HttpContext } from '@adonisjs/core/http'
 import TaskTransformer from '#transformers/task_transformer'
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiResponse } from '@foadonis/openapi/decorators'
+import { ref, updateTaskStatusBody, wrapped } from '#openapi/schemas'
 
+@ApiBearerAuth()
+@ApiResponse({
+  status: 401,
+  description:
+    'Falta la cabecera `Authorization` o el token ya no vale. Nada cambia en el espacio.',
+  schema: ref('UnauthorizedError'),
+})
 export default class TaskStatusesController {
   /**
    * El estado es lo único mutable de una tarea en este momento, y por eso
@@ -15,6 +24,28 @@ export default class TaskStatusesController {
    * prohibidas: volver de «hecho» a «pendiente» es justamente lo que arregla
    * un clic dado por error.
    */
+  @ApiOperation({
+    summary: 'Cambiar el estado de una tarea',
+    description:
+      'Admite cualquier transición entre los tres estados, incluida la vuelta desde `done`, a cualquier cuenta con sesión y sea o no la responsable. El título y el responsable no se tocan.',
+  })
+  @ApiBody({ schema: updateTaskStatusBody })
+  @ApiResponse({
+    status: 200,
+    description: 'La tarea ya en el nuevo estado.',
+    schema: wrapped(ref('Task')),
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'No existe ninguna tarea con ese identificador.',
+    schema: ref('NotFoundError'),
+  })
+  @ApiResponse({
+    status: 422,
+    description:
+      'El estado pedido no es ninguno de los tres. La tarea conserva el que tenía y el estado inventado no pasa a existir.',
+    schema: ref('ValidationError'),
+  })
   async update({ params, request, serialize }: HttpContext) {
     const task = await Task.findOrFail(params.id)
     const { status } = await request.validateUsing(updateTaskStatusValidator)
