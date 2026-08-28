@@ -49,14 +49,16 @@ export function TaskDueDateField({ value, onChange }: TaskDueDateFieldProps) {
       return
     }
 
+    // En cuanto la fecha vuelve a estar completa, el aviso de «incompleta» ya
+    // no dice la verdad: se retira aquí y no dentro de las salidas de abajo,
+    // porque volver a escribir la misma fecha que ya estaba guardada no llega a
+    // guardar nada y dejaría el aviso pegado sobre un campo correcto.
+    setError(undefined)
+
     const dueDate = input.value === '' ? null : input.value
-    if (isSaving || dueDate === lastSaved.current) {
-      if (salgoDelCampo) setError(undefined)
-      return
-    }
+    if (isSaving || dueDate === lastSaved.current) return
 
     setSaving(true)
-    setError(undefined)
 
     try {
       await onChange(dueDate)
