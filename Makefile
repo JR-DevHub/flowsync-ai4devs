@@ -14,7 +14,7 @@ BACKEND  := backend
 FRONTEND := frontend
 
 .DEFAULT_GOAL := help
-.PHONY: help setup start install env migrate clean
+.PHONY: help setup start install env migrate migrate-dev migrate-test db-up db-down test clean
 
 # La ayuda se genera a partir de los comentarios `## ...` de cada target, para
 # que no haya un segundo listado que mantener a mano y que pueda divergir.
@@ -22,14 +22,14 @@ help: ## Muestra esta ayuda
 	@echo "FlowSync — targets disponibles:"
 	@echo ""
 	@grep -E '^[a-zA-Z_-]+:.*## ' $(MAKEFILE_LIST) \
-		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-8s %s\n", $$1, $$2 }'
+		| awk 'BEGIN { FS = ":.*## " }; { printf "  make %-13s %s\n", $$1, $$2 }'
 	@echo ""
 
 # ---------------------------------------------------------------------------
 # setup
 # ---------------------------------------------------------------------------
 
-setup: install env migrate ## Deja el proyecto listo para arrancar
+setup: install env db-up migrate ## Deja el proyecto listo para arrancar
 	@echo ""
 	@echo "✅ Setup completado. Arranca todo con: make start"
 
@@ -61,9 +61,32 @@ env:
 		cd $(BACKEND) && node ace generate:key; \
 	fi
 
-migrate:
-	@echo "🗃️  Ejecutando migraciones..."
+# ---------------------------------------------------------------------------
+# bases de datos (PostgreSQL en Docker, ver compose.yaml)
+# ---------------------------------------------------------------------------
+
+# `--wait` bloquea hasta que db y db-test están `healthy`, así la primera
+# migración no falla por conexión rechazada mientras la imagen inicializa.
+db-up: ## Levanta las bases de datos (dev 54410, test 54411) y espera a que estén sanas
+	@docker compose up -d --wait
+
+db-down: ## Para y borra los contenedores y el volumen de la base de desarrollo
+	@docker compose down -v --remove-orphans
+
+migrate-dev: db-up ## Migra la base de desarrollo
+	@echo "🗃️  Migrando base de desarrollo..."
 	@cd $(BACKEND) && node ace migration:run
+
+# NODE_ENV=test hace que el framework cargue backend/.env.test (puerto 54411).
+# La base de pruebas es tmpfs: tras reiniciar el contenedor hay que migrar de nuevo.
+migrate-test: db-up ## Migra la base de pruebas
+	@echo "🗃️  Migrando base de pruebas..."
+	@cd $(BACKEND) && NODE_ENV=test node ace migration:run
+
+migrate: migrate-dev migrate-test ## Migra las dos bases (dev y test)
+
+test: migrate-test ## Migra la base de pruebas y corre toda la batería
+	@cd $(BACKEND) && npm test
 
 # ---------------------------------------------------------------------------
 # start
@@ -112,8 +135,8 @@ start: ## Levanta backend y frontend a la vez
 # clean
 # ---------------------------------------------------------------------------
 
-clean: ## Borra node_modules y la base de datos SQLite
+clean: ## Borra node_modules y los datos de las bases (contenedores y volumen)
 	@echo "🧹 Limpiando..."
 	@rm -rf $(BACKEND)/node_modules $(FRONTEND)/node_modules
-	@rm -f $(BACKEND)/tmp/db.sqlite3 $(BACKEND)/tmp/db.sqlite3-wal $(BACKEND)/tmp/db.sqlite3-shm
+	@docker compose down -v --remove-orphans
 	@echo "✅ Listo. Vuelve a ejecutar: make setup"
